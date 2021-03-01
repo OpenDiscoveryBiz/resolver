@@ -11,5 +11,5 @@
 |
 */
 
-$app->get('/', 'ResolverController@frontpage');
-$app->get('/lookup', 'ResolverController@lookup');
+$router->get('/', 'ResolverController@frontpage');
+$router->get('/lookup', 'ResolverController@lookup');
