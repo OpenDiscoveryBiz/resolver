@@ -4,33 +4,28 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use GuzzleHttp\Client;
-use GuzzleHttp\json_decode;
-use GuzzleHttp\Exception\BadResponseException;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class ResolverController extends Controller
 {
     protected $ttl_min;
+
     protected $ttl_max;
+
     protected $ttl_default;
 
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
-        $this->ttl_min = env('RESOLVER_TTL_MIN');
-        $this->ttl_max = env('RESOLVER_TTL_MAX');
-        $this->ttl_default = env('RESOLVER_TTL_DEFAULT');
+        $this->ttl_min = config('opendiscovery.ttl_min');
+        $this->ttl_max = config('opendiscovery.ttl_max');
+        $this->ttl_default = config('opendiscovery.ttl_default');
     }
 
     public function frontpage()
     {
-        return redirect("https://github.com/OpenDiscoveryBiz/resolver");
+        return redirect('https://github.com/OpenDiscoveryBiz/resolver');
     }
 
     public function lookup(Request $request)
@@ -45,16 +40,16 @@ class ResolverController extends Controller
         }
 
         $id = Str::upper($id);
-        $id = preg_replace("/[^A-Z0-9]+/", "", $id);
+        $id = preg_replace('/[^A-Z0-9]+/', '', $id);
 
-        if (!preg_match("/^[A-Z]{2,2}[A-Z0-9]{1,14}+$/", $id)) {
+        if (! preg_match('/^[A-Z]{2,2}[A-Z0-9]{1,14}+$/', $id)) {
             return response()->json([
                 'error' => 'invalid_id',
             ], 400);
         }
 
         $redirect_search = [];
-        for ($i = strlen($id)-1; $i > 1; $i--) {
+        for ($i = strlen($id) - 1; $i > 1; $i--) {
             $prefix = substr($id, 0, $i);
             $redirect_search[] = $prefix.'_redirect';
         }
@@ -66,12 +61,12 @@ class ResolverController extends Controller
 
         $cached = Cache::many($id_search);
 
-        if ($cached[$id.'_official'] !== NULL) {
+        if ($cached[$id.'_official'] !== null) {
             $official = $cached[$id.'_official'];
         } else {
-            $providers = explode(',', env('PROVIDER_ROOT'));
+            $providers = explode(',', config('opendiscovery.provider_root'));
             foreach ($redirect_search as $search) {
-                if ($cached[$search] === NULL) {
+                if ($cached[$search] === null) {
                     continue;
                 }
 
@@ -85,7 +80,7 @@ class ResolverController extends Controller
                     $data = null;
                     $error_message = null;
                     for ($provider_count = 0; $provider_count < 2; $provider_count++) {
-                        if (!isset($providers[$provider_count])) {
+                        if (! isset($providers[$provider_count])) {
                             break;
                         }
                         try {
@@ -98,33 +93,27 @@ class ResolverController extends Controller
                     }
 
                     if (empty($data)) {
-                        throw new \Exception("Official providers down: ".$error_message);
+                        throw new \Exception('Official providers down: '.$error_message);
                     }
 
-                    $type = $data['type'] ?? NULL;
+                    $type = $data['type'] ?? null;
                     if ($type === 'official') {
                         $official = $data;
                         Cache::put($id.'_official', $official, $this->getExpireTime($data['ttl'] ?? 0));
                         break;
                     }
                     if ($type !== 'redirect') {
-                        throw new \Exception("Got unsupported type from official providers");
+                        throw new \Exception('Got unsupported type from official providers');
                     }
 
-                    if (empty($data['providers']) || !is_array($data['providers']) || count($data['providers']) < 1) {
-                        throw new \Exception("No providers in redirect from offical provider");
+                    if (empty($data['providers']) || ! is_array($data['providers']) || count($data['providers']) < 1) {
+                        throw new \Exception('No providers in redirect from offical provider');
                     }
 
-                    if (!empty($data['id'])) {
+                    if (! empty($data['id'])) {
                         $cache_key = $data['id'].'_'.$type;
-                        if ($cached[$cache_key] === NULL) {
+                        if ($cached[$cache_key] === null) {
                             Cache::put($cache_key, $data, $this->getExpireTime($data['ttl'] ?? 0));
-
-                            // Put in cache array immidiately, since if an official provider has multiple redirects
-                            // only the first is cached, if the id prefix hasn't increased. Reason: Immagine a
-                            // country having two types of companies which they want to host on different servers. A top
-                            // server redirects the resolver based on the ID to a TypeA company provider, we don't want
-                            // to risk caching and send all requests for TypeB companies to the same provider.
                             $cached[$cache_key] = $data;
                         }
                     }
@@ -140,10 +129,8 @@ class ResolverController extends Controller
             }
         }
 
-        //$cached[$id . '_voluntary'] = NULL;
-
-        if (empty($official['error']) && !empty($official['voluntaryProviders'])) {
-            if ($cached[$id.'_voluntary'] !== NULL) {
+        if (empty($official['error']) && ! empty($official['voluntaryProviders'])) {
+            if ($cached[$id.'_voluntary'] !== null) {
                 $voluntary = $cached[$id.'_voluntary'];
             } else {
                 try {
@@ -154,7 +141,7 @@ class ResolverController extends Controller
                     for ($redirect_count = 0; $redirect_count < 5; $redirect_count++) {
                         $data = null;
                         for ($provider_count = 0; $provider_count < 2; $provider_count++) {
-                            if (!isset($providers[$provider_count])) {
+                            if (! isset($providers[$provider_count])) {
                                 break;
                             }
                             try {
@@ -166,20 +153,20 @@ class ResolverController extends Controller
                         }
 
                         if (empty($data)) {
-                            throw new \Exception("voluntary providers down");
+                            throw new \Exception('voluntary providers down');
                         }
 
-                        $type = $data['type'] ?? NULL;
+                        $type = $data['type'] ?? null;
                         if ($type === 'voluntary') {
                             $voluntary = $data;
                             break;
                         }
                         if ($type !== 'redirect') {
-                            throw new \Exception("Got unsupported type from voluntary providers");
+                            throw new \Exception('Got unsupported type from voluntary providers');
                         }
 
-                        if (empty($data['providers']) || !is_array($data['providers']) || count($data['providers']) < 1) {
-                            throw new \Exception("No providers in redirect from voluntary provider");
+                        if (empty($data['providers']) || ! is_array($data['providers']) || count($data['providers']) < 1) {
+                            throw new \Exception('No providers in redirect from voluntary provider');
                         }
 
                         $providers = $data['providers'];
@@ -201,8 +188,6 @@ class ResolverController extends Controller
             ];
         }
 
-        // TODO: https://www.emaerket.dk/xmlfeeds/shops
-
         $ttl = 3600;
 
         $company = [
@@ -212,7 +197,7 @@ class ResolverController extends Controller
             'voluntary' => $voluntary,
         ];
 
-        if (!empty($pretty)) {
+        if (! empty($pretty)) {
             return response()->json($company, 200, [], JSON_PRETTY_PRINT);
         }
 
@@ -234,43 +219,34 @@ class ResolverController extends Controller
 
     protected function fetchData($host, $id)
     {
-        $client = new Client([
-            'timeout' => 5,
-            'connect_timeout' => 5,
-            'read_timeout' => 5,
-        ]);
+        $host = rtrim($host, '/');
+        $url = $host.'/.well-known/opendiscovery/'.urlencode($id).'.json';
 
-        $host = rtrim($host, "/");
+        $response = Http::timeout(5)
+            ->withHeaders([
+                'User-Agent' => 'OpenDiscoveryResolver (+https://www.opendiscovery.biz/)',
+            ])
+            ->withOptions(['allow_redirects' => false])
+            ->get($url);
 
-        try {
-            $response = $client->request('GET', $host.'/.well-known/opendiscovery/'.urlencode($id).'.json', [
-                'headers' => [
-                    'User-Agent' => 'OpenDiscoveryResolver (+https://www.opendiscovery.biz/)',
-                ],
-                'allow_redirects' => false,
-            ]);
-        } catch (BadResponseException $e) {
-            $response = $e->getResponse();
-
-            if ($response->getStatusCode() < 400 || $response->getStatusCode() > 499) {
-                throw $e;
+        if ($response->failed()) {
+            if ($response->status() < 400 || $response->status() > 499) {
+                $response->throw();
             }
         }
 
-        $jsonString = (string) $response->getBody();
+        $json = $response->json();
 
-        $json = json_decode($jsonString, true);
-
-        if (!empty($json['error'])) {
+        if (! empty($json['error'])) {
             return $json;
         }
 
         if (empty($json['id'])) {
-            throw new \Exception("Missing ID");
+            throw new \Exception('Missing ID');
         }
 
         if (strncmp($id, Str::upper($json['id']), strlen($json['id'])) !== 0) {
-            throw new \Exception("Unknown ID returned");
+            throw new \Exception('Unknown ID returned');
         }
 
         return $json;
