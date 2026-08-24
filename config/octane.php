@@ -239,7 +239,7 @@ return [
             'HOME' => '/data',
             'XDG_CONFIG_HOME' => '/config',
             'XDG_DATA_HOME' => '/data',
-            'CADDY_GLOBAL_OPTIONS' => "auto_https disable_redirects\n\tpersist_config off",
+            'CADDY_GLOBAL_OPTIONS' => "auto_https off\n\tpersist_config off\n\tstorage file_system {\n\t\troot /data/caddy\n\t}",
         ],
     ],
 

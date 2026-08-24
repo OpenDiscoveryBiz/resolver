@@ -7,6 +7,7 @@ mkdir -p \
   /app/storage/framework/views \
   /app/bootstrap/cache \
   /config/caddy \
+  /data/caddy/locks \
   /data/caddy \
   /data \
   /config

@@ -1,9 +1,34 @@
 x-tmpfs: &tmpfs
-  - /tmp:mode=1777,uid=10001,gid=10001
-  - /data:mode=1777,uid=10001,gid=10001
-  - /config:mode=1777,uid=10001,gid=10001
-  - /app/storage:mode=1777,uid=10001,gid=10001
-  - /app/bootstrap/cache:mode=1777,uid=10001,gid=10001
+  - type: tmpfs
+    target: /tmp
+    tmpfs:
+      mode: 0777
+      uid: 10001
+      gid: 10001
+  - type: tmpfs
+    target: /data
+    tmpfs:
+      mode: 0777
+      uid: 10001
+      gid: 10001
+  - type: tmpfs
+    target: /config
+    tmpfs:
+      mode: 0777
+      uid: 10001
+      gid: 10001
+  - type: tmpfs
+    target: /app/storage
+    tmpfs:
+      mode: 0777
+      uid: 10001
+      gid: 10001
+  - type: tmpfs
+    target: /app/bootstrap/cache
+    tmpfs:
+      mode: 0777
+      uid: 10001
+      gid: 10001
 
 services:
   resolver:
