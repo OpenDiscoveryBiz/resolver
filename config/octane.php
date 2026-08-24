@@ -234,4 +234,13 @@ return [
 
     'state_file' => env('OCTANE_STATE_FILE', storage_path('logs/octane-server-state.json')),
 
+    'caddy' => [
+        'env' => [
+            'HOME' => '/data',
+            'XDG_CONFIG_HOME' => '/config',
+            'XDG_DATA_HOME' => '/data',
+            'CADDY_GLOBAL_OPTIONS' => "auto_https disable_redirects\n\tpersist_config off",
+        ],
+    ],
+
 ];

@@ -23,6 +23,9 @@ services:
       APP_KEY: ${APP_KEY:?php artisan key:generate}
       LOG_CHANNEL: stderr
       OCTANE_STATE_FILE: /tmp/octane-server-state.json
+      XDG_CONFIG_HOME: /config
+      XDG_DATA_HOME: /data
+      HOME: /data
     tmpfs: *tmpfs
     networks:
       - opendiscovery

@@ -6,6 +6,8 @@ mkdir -p \
   /app/storage/framework/sessions \
   /app/storage/framework/views \
   /app/bootstrap/cache \
+  /config/caddy \
+  /data/caddy \
   /data \
   /config
 exec "$@"
