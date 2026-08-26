@@ -3,6 +3,7 @@ FROM dunglas/frankenphp:1-php8.5
 WORKDIR /app
 
 RUN install-php-extensions pcntl pdo_sqlite zip
+RUN echo 'expose_php=Off' > /usr/local/etc/php/conf.d/zz-expose-php.ini
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
