@@ -236,10 +236,10 @@ return [
 
     'caddy' => [
         'env' => [
-            'HOME' => '/data',
-            'XDG_CONFIG_HOME' => '/config',
-            'XDG_DATA_HOME' => '/data',
-            'CADDY_GLOBAL_OPTIONS' => "auto_https disable_redirects\n\tpersist_config off",
+            'HOME' => '/tmp',
+            'XDG_CONFIG_HOME' => '/tmp',
+            'XDG_DATA_HOME' => '/tmp',
+            'CADDY_GLOBAL_OPTIONS' => "auto_https off\n\tpersist_config off\n\tstorage_clean_interval off\n\tstorage_check off\n\tstorage file_system {\n\t\troot /tmp/caddy\n\t}",
         ],
     ],
 
